@@ -1,26 +1,54 @@
 #include "fiobj_hash.h"
 #include "fiobj_mustache.h"
+#include "fiobj_str.h"
 #include "fiobject.h"
 #include "http.h" /* the HTTP facil.io extension */
 #include "mustache_parser.h"
 
 #include "rsa.h"
+#include <stdio.h>
+
+
+#define HTTP_METHOD_NOT_ALLOWED 405
+
+static FIOBJ HTTP_METHOD_GET;
+#define IS_GET(request) fiobj_iseq(request->method, HTTP_METHOD_GET)
+
+#define STATIC_DIRECTORY "/static"
 
 void on_request(http_s *request);
+int str_starts_with(FIOBJ str, const char *prefix);
+void on_file_request(http_s *request);
 
 int main(int argc, char const **argv) {
 	printf("Starting facil.io server...\n");
-	int c = add(1, 2);
+
+	HTTP_METHOD_GET = fiobj_str_new("GET", 3);
 
 	http_listen("3000", "localhost", .on_request = on_request, .log = 1);
 	fio_start(.threads = 1);
+
+	fiobj_free(HTTP_METHOD_GET);
+}
+
+int str_starts_with(FIOBJ str, const char *prefix) {
+	fio_str_info_s s = fiobj_obj2cstr(str);
+	return strncmp(s.data, prefix, strlen(prefix)) == 0;
 }
 
 void on_request(http_s *request) {
-	http_set_header(request, HTTP_HEADER_CONTENT_TYPE, http_mimetype_find("html", 4));
-
 	mustache_error_en err;
 	const char *templates_file = "./templates/main.html";
+
+	if (str_starts_with(request->path, STATIC_DIRECTORY)) {
+		if (!IS_GET(request)) {
+			http_send_error(request, HTTP_METHOD_NOT_ALLOWED);
+			return;
+		}
+
+		on_file_request(request);
+		return;
+	};
 
 	mustache_s *template = fiobj_mustache_new(
 		.filename = templates_file,
@@ -51,4 +79,28 @@ void on_request(http_s *request) {
 
 	fiobj_mustache_free(template);
 	fiobj_free(html);
+}
+
+void on_file_request(http_s *request) {
+	FIOBJ static_path = fiobj_str_new(".", 1);
+	fiobj_str_concat(static_path, request->path);
+
+	FILE *file = fopen(fiobj_obj2cstr(static_path).data, "r");
+
+	if (file) {
+		int desc = fileno(file);
+
+		fseek(file, 0L, SEEK_END);
+		size_t size = ftell(file);
+		rewind(file);
+
+		int ret = http_sendfile(request, desc, size, 0);
+		if (ret < 0) {
+			printf("Error sending file: %s\n", strerror(errno));
+		}
+
+		fclose(file);
+	}
+
+	fiobj_free(static_path);
 }
