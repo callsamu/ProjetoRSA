@@ -8,6 +8,8 @@ deps = [
 src = [
   'main.c',
   'rsa.c',
+  'utils.c',
+  'application.c',
 ]
 
 executable('rsa', 
