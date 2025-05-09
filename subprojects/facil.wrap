@@ -1,0 +1,13 @@
+[wrap-file]
+directory = facil.io-0.7.6
+source_url = https://github.com/boazsegev/facil.io/archive/0.7.6.tar.gz
+source_filename = 0.7.6.tar.gz
+source_hash = dc004017093e1ae3838b8c2a281d77d7cc94a84e0f157d93740838fb61e26d47
+patch_filename = facil_0.7.6-4_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/facil_0.7.6-4/get_patch
+patch_hash = 821d41ea2e9dbad229a0bcaf1f75aeaa2b6480644e12c660c2a777c668686dfc
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/facil_0.7.6-4/0.7.6.tar.gz
+wrapdb_version = 0.7.6-4
+
+[provide]
+facil = facil_dep
