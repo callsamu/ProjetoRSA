@@ -10,6 +10,7 @@ src = [
   'rsa.c',
   'utils.c',
   'application.c',
+  'handlers.c',
 ]
 
 executable('rsa', 

@@ -4,6 +4,7 @@
 
 #include "application.h"
 #include "utils.h"
+#include "handlers.h"
 
 #define STATIC_DIRECTORY "/static/"
 
@@ -44,6 +45,7 @@ Application *init_app() {
 	fiobj_hash_set(table, HTTP_POST, fiobj_hash_new());
 
 	add_route(table, HTTP_GET, "/", home_handler);
+	add_route(table, HTTP_GET, "/encrypt", encrypt_form_handler);
 
 	app->routing_table = table;
 	return app;
@@ -93,41 +95,6 @@ void route_request(Application *app, http_s *request) {
 	handler_fn(request);
 }
 
-void home_handler(http_s *request) {
-	mustache_error_en err;
-	const char *templates_file = "./templates/main.html";
-
-
-	mustache_s *template = fiobj_mustache_new(
-		.filename = templates_file,
-		.filename_len = strlen(templates_file),
-		.err = &err
-	);
-
-	if (err) {
-		switch (err) {
-		case MUSTACHE_ERR_FILE_NOT_FOUND:
-			printf("Template not found\n");
-			break;
-		case MUSTACHE_ERR_UNKNOWN:
-			printf("Syntax error\n");
-		default:
-			printf("Unknown error\n");
-			break;
-		}
-
-		http_send_error(request, err);
-		return;
-	}
-
-	FIOBJ html = fiobj_mustache_build(template, fiobj_hash_new());
-	fio_str_info_s html_string = fiobj_obj2cstr(html);
-
-	http_send_body(request, html_string.data, html_string.len);
-
-	fiobj_mustache_free(template);
-	fiobj_free(html);
-}
 
 void on_file_request(http_s *request) {
 	FIOBJ static_path = fiobj_str_new(".", 1);
