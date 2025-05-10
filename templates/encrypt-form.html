@@ -1,0 +1,13 @@
+<div class="content">
+	<h2>Encriptar Mensagem<h2>
+
+	<form hx-post="/encrypt" hx-target="this" hx-swap="outerHTML">
+		<label for="message">Mensagem</label>
+		<input type="text" name="message" placeholder="test@example.com">
+
+		<label for="key">Chave Pública</label>
+		<textarea name="key" placeholder="..."></textarea>
+
+		<input type="submit" value="Gerar"/>
+	</form>
+</div>

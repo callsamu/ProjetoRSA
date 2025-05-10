@@ -80,7 +80,7 @@ label {
 	font-size: 1rem;
 }
 
-input[type="text"] {
+input[type="text"], textarea {
 	background-color: oklch(21% 0.034 264.665);
 	border: none;
 	color: white;

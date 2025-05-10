@@ -120,11 +120,84 @@ void key_handler(http_s *request) {
 	char cwd[1024];
 	getcwd(cwd, sizeof(cwd));
 
-	char PATH_[4098];
-	sprintf(PATH_, "%s/texts/public_key.txt", cwd);
+	char tmp_message[4098];
+	sprintf(tmp_message, "Chave Pública salva em %s/texts/public_key.txt", cwd);
 
 	FIOBJ data = fiobj_hash_new();
-	fiobj_hash_set(data, fiobj_str_new("path", 4), fiobj_str_new(PATH_, strlen(PATH_)));
-	write_template(request, "templates/publickey_submission.html", data);
+	fiobj_hash_set(data, fiobj_str_new("message", 7), fiobj_str_new(tmp_message, strlen(tmp_message)));
+	write_template(request, "templates/message.html", data);
+
 	fiobj_free(data);
+	mpz_clears(p, q, e, NULL);
+}
+
+void encrypt_form_handler(http_s *request) {
+	write_template(request, "templates/encrypt-form.html", fiobj_null());
+}
+
+void parse_key(FIOBJ str, PublicKey *key){
+	fio_str_info_s s = fiobj_obj2cstr(str);
+
+	char *buffer = malloc(s.len);	
+
+	int i = 0;
+
+	for (; s.data[i] != '\n' && s.data[i] != '\0';  i++) {
+		buffer[i] = s.data[i];
+	}
+
+	buffer[i] = '\0';
+	i++;
+
+	mpz_set_str(key->n, buffer, 10);
+	memset(buffer, 0, s.len);
+
+	int j = 0;
+	for (; s.data[i] != '\0';  i++, j++) {
+		buffer[j] = s.data[i];
+	}
+	buffer[j] = '\0';
+	i++;
+
+	mpz_set_str(key->e, buffer, 10);
+	free(buffer);
+}
+
+void encrypt_handler(http_s *request) {
+	http_parse_body(request);
+
+	FIOBJ message = fiobj_hash_get(request->params, fiobj_str_new("message", 7));
+	if (message == FIOBJ_INVALID) {
+		http_send_error(request, HTTP_BAD_REQUEST);
+		return;
+	}
+
+	FIOBJ key = fiobj_hash_get(request->params, fiobj_str_new("key", 3));
+	if (key == FIOBJ_INVALID) {
+		http_send_error(request, HTTP_BAD_REQUEST);
+		return;
+	}
+
+	PublicKey chave;
+	mpz_init(chave.n);
+	mpz_init(chave.e);
+
+	parse_key(key, &chave);
+
+	fio_str_info_s s = fiobj_obj2cstr(message);
+
+	encrypt_message(s.data, &chave, "./texts/encrypted.txt");
+
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+
+	char tmp_message[4098];
+	sprintf(tmp_message, "Mensagem encriptada salva em %s/texts/encrypted.txt", cwd);
+
+	FIOBJ data = fiobj_hash_new();
+	fiobj_hash_set(data, fiobj_str_new("message", 7), fiobj_str_new(tmp_message, strlen(tmp_message)));
+	write_template(request, "templates/message.html", data);
+
+	fiobj_free(data);
+	mpz_clears(chave.n, chave.e, NULL);
 }
