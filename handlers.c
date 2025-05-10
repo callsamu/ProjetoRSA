@@ -34,34 +34,60 @@ mustache_s *load_template(const char *filename) {
 	return template;
 }
 
-void home_handler(http_s *request) {
-	mustache_s *template = load_template("templates/main.html");
+FIOBJ add_content_to_layout(FIOBJ content) {
+	mustache_s *template = load_template("templates/base.html");
+
 	if (!template) {
+		fiobj_mustache_free(template);
+		return FIOBJ_INVALID;
+	}
+
+	FIOBJ data = fiobj_hash_new();
+	fiobj_hash_set(data, fiobj_str_new("content", 7), content);
+
+	FIOBJ html = fiobj_mustache_build(template, data);
+	fiobj_mustache_free(template);
+
+	return html;
+}
+
+void write_template(http_s *request, const char *filename) {
+	mustache_s *template = load_template(filename);
+
+	if (!template) {
+		fiobj_mustache_free(template);
 		http_send_error(request, HTTP_INTERNAL_SERVER_ERROR);
 		return;
 	}
 
 	FIOBJ html = fiobj_mustache_build(template, fiobj_hash_new());
-	fio_str_info_s html_string = fiobj_obj2cstr(html);
+	fiobj_mustache_free(template);
 
+	FIOBJ htmx = fiobj_hash_get(request->headers, fiobj_str_new("hx-request", 10));
+
+	if (!fiobj_iseq(htmx, fiobj_str_new("true", 4))) {
+		puts("Not an HX request");
+		FIOBJ _html = add_content_to_layout(html);
+		fiobj_free(html);
+
+		if (_html == FIOBJ_INVALID) {
+			http_send_error(request, HTTP_INTERNAL_SERVER_ERROR);
+			return;
+		}
+
+		html = _html;
+	}
+
+	fio_str_info_s html_string = fiobj_obj2cstr(html);
 	http_send_body(request, html_string.data, html_string.len);
 
-	fiobj_mustache_free(template);
 	fiobj_free(html);
 }
 
+void home_handler(http_s *request) {
+	write_template(request, "templates/home.html");
+}
+
 void encrypt_form_handler(http_s *request) {
-	mustache_s *template = load_template("templates/encrypt.html");
-	if (!template) {
-		http_send_error(request, HTTP_INTERNAL_SERVER_ERROR);
-		return;
-	}
-
-	FIOBJ html = fiobj_mustache_build(template, fiobj_hash_new());
-	fio_str_info_s html_string = fiobj_obj2cstr(html);
-
-	http_send_body(request, html_string.data, html_string.len);
-
-	fiobj_mustache_free(template);
-	fiobj_free(html);
+	write_template(request, "templates/encrypt.html");
 }
