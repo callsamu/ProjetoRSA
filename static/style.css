@@ -1,6 +1,7 @@
 * {
 	box-sizing: border-box;
 	font-family: monospace;
+	font-size: 22px;
 }
 
 body {
@@ -21,11 +22,17 @@ a {
 .container {
 	padding: 4rem;
 	display: flex;
+	width: 70%;
 	gap: 2rem;
 }
 
 .menu {
 	padding-top: 1rem;
+	width: 40%;
+}
+
+.content {
+	width: 80%;
 }
 
 .btn {
@@ -60,4 +67,58 @@ a {
 	justify-content: center;
 	align-items: center;
 	gap: 1rem;
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+label {
+	color: rgba(255, 255, 255, 0.6);
+	font-size: 1rem;
+}
+
+input[type="text"] {
+	background-color: oklch(21% 0.034 264.665);
+	border: none;
+	color: white;
+	padding: 0.5rem 1rem; 
+	border-radius: 0.5rem;
+	border: 2px solid oklch(27.8% 0.033 256.848);
+	outline: none;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 0.8rem;
+	margin: 4px 2px;
+	border-radius: 0.25rem;
+	transition: all 0.3s ease-in-out;
+	color: rgba(255, 255, 255, 0.6);
+	width: 16rem;
+}
+
+input[type="submit"] {
+	background-color: oklch(21% 0.034 264.665);
+	border: none;
+	color: white;
+	padding: 0.5rem 1rem; 
+	border-radius: 0.5rem;
+	border: 2px solid oklch(27.8% 0.033 256.848);
+	outline: none;
+	font-size: small;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+	margin: 4px 2px;
+	cursor: pointer;
+	transition: all 0.3s ease-in-out;
+	color: rgba(255, 255, 255, 0.6);
+	width: 16rem;
+	margin-top: 1rem;
+}
+
+input[type="submit"]:hover {
+	background-color: oklch(27.8% 0.033 256.848);
 }
