@@ -71,7 +71,7 @@ int encrypt_message(const char *mensagem, const PublicKey *chave, const char *fi
 
         mpz_set_ui(m, ascii);
         mpz_powm(c, m, chave->e, chave->n);
-        gmp_fprintf(arquivo, "%Zd\n", c);
+        gmp_fprintf(arquivo, "%Zd ", c);
     }
 
     fclose(arquivo);
@@ -89,11 +89,11 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
     mpz_mul(n, p, q);
 
     mpz_sub_ui(phi, p, 1);
-    mpz_t q_menos_1;
-    mpz_init(q_menos_1);
-    mpz_sub_ui(q_menos_1, q, 1);
-    mpz_mul(phi, phi, q_menos_1);
-    mpz_clear(q_menos_1);
+    mpz_t q_minus_1;
+    mpz_init(q_minus_1);
+    mpz_sub_ui(q_minus_1, q, 1);
+    mpz_mul(phi, phi, q_minus_1);
+    mpz_clear(q_minus_1);
 
     if (!mpz_invert(d, e, phi)) {
         mpz_clears(phi, d, n, c, m, NULL);
@@ -105,7 +105,6 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
         mpz_clears(phi, d, n, c, m, NULL);
         return 0;
     }
-
     FILE *output = fopen("mensagem_desencriptada.txt", "w");
     if (!output) {
         fclose(input);
@@ -113,14 +112,12 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
         return 0;
     }
 
-    char line[1024];
-    while (fgets(line, sizeof(line), input)) {
-        size_t len = strlen(line);
-        if (len > 0 && line[len - 1] == '\n') {
-            line[len - 1] = '\0';
-        }
-
-        if (mpz_set_str(c, line, 10) != 0) {
+    char token[1024];
+    while (fscanf(input, "%1023s", token) == 1) {
+        if (mpz_set_str(c, token, 10) != 0) {
+            fclose(input);
+            fclose(output);
+            mpz_clears(phi, d, n, c, m, NULL);
             return 0;
         }
 
@@ -128,12 +125,18 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
 
         unsigned long ascii = mpz_get_ui(m);
         if (ascii < 32 || ascii > 126) {
+            fclose(input);
+            fclose(output);
+            mpz_clears(phi, d, n, c, m, NULL);
             return 0;
         }
         fputc((char)ascii, output);
     }
 
     if (ferror(input)) {
+        fclose(input);
+        fclose(output);
+        mpz_clears(phi, d, n, c, m, NULL);
         return 0;
     }
 
@@ -141,7 +144,7 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
     fclose(output);
     mpz_clears(phi, d, n, c, m, NULL);
 
-    return 1;
+  return 1;
 }
 
 int main() {
