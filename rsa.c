@@ -146,26 +146,3 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
 
   return 1;
 }
-
-int main() {
-    mpz_t p, q, e;
-    mpz_inits(p, q, e, NULL);
-    mpz_set_ui(p, 100019);
-    mpz_set_ui(q, 100043);
-    mpz_set_ui(e, 65537);
-
-    PublicKey chave;
-    if (generate_public_key(p, q, e, &chave)) {
-
-        const char *mensagem = "matematica discreta";
-        if (encrypt_message(mensagem, &chave, "mensagem_encriptada.txt")) {
-        }
-    }
-
-    if (!decrypt_message("mensagem_encriptada.txt", p, q, e)) {
-        return 1;
-    }
-
-    mpz_clears(p, q, e, chave.n, chave.e, NULL);
-    return 0;
-}
