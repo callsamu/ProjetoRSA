@@ -5,6 +5,12 @@ typedef struct {
     mpz_t e;
 } PublicKey;
 
+enum RSA_ERRORS{
+	RSA_OK,
+	RSA_E_NOT_COPRIME,
+	RSA_FAILED_TO_SAVE_PUBLIC_KEY
+};
+
 
 int is_prime(const mpz_t number);
 int generate_public_key(const mpz_t p, const mpz_t q, const mpz_t e, PublicKey *chave);

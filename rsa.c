@@ -2,10 +2,7 @@
 #include <gmp.h>
 #include <string.h>
 
-typedef struct {
-    mpz_t n;
-    mpz_t e;
-} PublicKey;
+#include "rsa.h"
 
 int is_prime(const mpz_t number) {
     return mpz_probab_prime_p(number, 100);
@@ -35,7 +32,7 @@ int generate_public_key(const mpz_t p, const mpz_t q, const mpz_t e, PublicKey *
     mpz_gcd(temp, e, phi);
     if (mpz_cmp_ui(temp, 1) != 0) {
         mpz_clears(phi, temp, NULL);
-        return 0;
+		return RSA_E_NOT_COPRIME;
     }
 
     mpz_init(chave->n);
@@ -45,11 +42,11 @@ int generate_public_key(const mpz_t p, const mpz_t q, const mpz_t e, PublicKey *
 
     if (!save_public_key(chave, "chave_publica.txt")) {
         mpz_clears(phi, temp, NULL);
-        return 0;
+        return RSA_FAILED_TO_SAVE_PUBLIC_KEY;
     }
 
     mpz_clears(phi, temp, NULL);
-    return 1;
+    return OK;
 }
 
 int encrypt_message(const char *mensagem, const PublicKey *chave, const char *file_name) {
@@ -144,5 +141,5 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
     fclose(output);
     mpz_clears(phi, d, n, c, m, NULL);
 
-  return 1;
+	return RSA_OK;
 }
