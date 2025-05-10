@@ -1,4 +1,6 @@
 #include "handlers.h"
+#include "fiobj_json.h"
+#include "fiobj_str.h"
 #include "mustache_parser.h"
 #include "fiobject.h"
 #include "http.h"
@@ -88,6 +90,21 @@ void home_handler(http_s *request) {
 	write_template(request, "templates/home.html");
 }
 
-void encrypt_form_handler(http_s *request) {
+void key_form_handler(http_s *request) {
 	write_template(request, "templates/encrypt.html");
+}
+
+void key_handler(http_s *request) {
+	if (!http_parse_body(request)) {
+		puts("Error parsing body");
+		http_send_error(request, HTTP_INTERNAL_SERVER_ERROR);
+		return;
+	};
+
+	FIOBJ p = fiobj_hash_get(request->params, fiobj_str_new("p", 1));
+	FIOBJ q = fiobj_hash_get(request->params, fiobj_str_new("q", 1));
+	FIOBJ e = fiobj_hash_get(request->params, fiobj_str_new("e", 1));
+
+	fio_str_info_s data = fiobj_obj2cstr(p);
+	printf("%s\n", data.data);
 }

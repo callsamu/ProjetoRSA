@@ -45,7 +45,8 @@ Application *init_app() {
 	fiobj_hash_set(table, HTTP_POST, fiobj_hash_new());
 
 	add_route(table, HTTP_GET, "/", home_handler);
-	add_route(table, HTTP_GET, "/encrypt", encrypt_form_handler);
+	add_route(table, HTTP_GET, "/publickey", key_form_handler);
+	add_route(table, HTTP_POST, "/publickey", key_handler);
 
 	app->routing_table = table;
 	return app;

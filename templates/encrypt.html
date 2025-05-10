@@ -1,7 +1,7 @@
 <div class="content">
 	<h2>Gerar Chave Pública<h2>
 
-	<form method="post">
+	<form hx-post="/encrypt" hx-swap="outerHTML">
 		<label for="p">Um Primo P:</label>
 		<input type="text" name="p" placeholder="720703">
 
@@ -9,7 +9,7 @@
 		<input type="text" name="q" placeholder="225373">
 
 		<label for="e">Um número e relativamente primo a (p-1)*(q-1): </label>
-		<input type="text" name="q" placeholder="225373">
+		<input type="text" name="e" placeholder="225373">
 
 		<input type="submit" value="Gerar"/>
 	</form>
