@@ -97,23 +97,19 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
         return 0;
     }
 
-    FILE *input = fopen(mensagem_encriptada, "r");
-    if (!input) {
-        mpz_clears(phi, d, n, c, m, NULL);
-        return 0;
-    }
-    FILE *output = fopen("mensagem_desencriptada.txt", "w");
+    FILE *output = fopen("texts/decrypted.txt", "w");
     if (!output) {
-        fclose(input);
         mpz_clears(phi, d, n, c, m, NULL);
         return 0;
     }
 
+	FILE *stream = fmemopen((void *) mensagem_encriptada, strlen(mensagem_encriptada), "r");
+
     char token[1024];
-    while (fscanf(input, "%1023s", token) == 1) {
+    while (fscanf(stream, "%1023s", token) == 1) {
         if (mpz_set_str(c, token, 10) != 0) {
-            fclose(input);
             fclose(output);
+			fclose(stream);
             mpz_clears(phi, d, n, c, m, NULL);
             return 0;
         }
@@ -122,23 +118,16 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
 
         unsigned long ascii = mpz_get_ui(m);
         if (ascii < 32 || ascii > 126) {
-            fclose(input);
             fclose(output);
+			fclose(stream);
             mpz_clears(phi, d, n, c, m, NULL);
             return 0;
         }
         fputc((char)ascii, output);
     }
 
-    if (ferror(input)) {
-        fclose(input);
-        fclose(output);
-        mpz_clears(phi, d, n, c, m, NULL);
-        return 0;
-    }
-
-    fclose(input);
     fclose(output);
+	fclose(stream);
     mpz_clears(phi, d, n, c, m, NULL);
 
 	return RSA_OK;

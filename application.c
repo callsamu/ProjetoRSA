@@ -52,6 +52,9 @@ Application *init_app() {
 	add_route(table, HTTP_GET, "/encrypt", encrypt_form_handler);
 	add_route(table, HTTP_POST, "/encrypt", encrypt_handler);
 
+	add_route(table, HTTP_GET, "/decrypt", decrypt_form_handler);
+	add_route(table, HTTP_POST, "/decrypt", decrypt_handler);
+
 	app->routing_table = table;
 	return app;
 }

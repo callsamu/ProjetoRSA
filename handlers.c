@@ -201,3 +201,41 @@ void encrypt_handler(http_s *request) {
 	fiobj_free(data);
 	mpz_clears(chave.n, chave.e, NULL);
 }
+
+void decrypt_form_handler(http_s *request) {
+	write_template(request, "templates/decrypt-form.html", fiobj_null());
+}
+
+void decrypt_handler(http_s *request) {
+	http_parse_body(request);
+
+	mpz_t p, q, e;
+	mpz_init(p);
+	get_mpz_from_form(request->params, "p", &p);
+
+	mpz_init(q);
+	get_mpz_from_form(request->params, "q", &q);
+
+	mpz_init(e);
+	get_mpz_from_form(request->params, "e", &e);
+
+	FIOBJ message = fiobj_hash_get(request->params, fiobj_str_new("message", 7));
+	if (message == FIOBJ_INVALID) {
+		http_send_error(request, HTTP_BAD_REQUEST);
+		return;
+	}
+
+	fio_str_info_s s = fiobj_obj2cstr(message);
+	printf("%d\n", decrypt_message(s.data, p, q, e));
+
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+
+	char tmp_message[4098];
+	sprintf(tmp_message, "Mensagem desencriptada salva em %s/texts/decrypted.txt", cwd);
+
+	FIOBJ data = fiobj_hash_new();
+	fiobj_hash_set(data, fiobj_str_new("message", 7), fiobj_str_new(tmp_message, strlen(tmp_message)));
+	write_template(request, "templates/message.html", data);
+}
+
