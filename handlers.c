@@ -1,10 +1,15 @@
 #include "handlers.h"
-#include "fiobj_json.h"
+#include "fiobj_hash.h"
 #include "fiobj_str.h"
 #include "mustache_parser.h"
 #include "fiobject.h"
 #include "http.h"
+#include <gmp.h>
 
+#include "utils.h"
+#include "rsa.h"
+
+#define HTTP_BAD_REQUEST 400
 #define HTTP_INTERNAL_SERVER_ERROR 500
 
 mustache_s *load_template(const char *filename) {
@@ -53,7 +58,7 @@ FIOBJ add_content_to_layout(FIOBJ content) {
 	return html;
 }
 
-void write_template(http_s *request, const char *filename) {
+void write_template(http_s *request, const char *filename, FIOBJ data) {
 	mustache_s *template = load_template(filename);
 
 	if (!template) {
@@ -62,7 +67,7 @@ void write_template(http_s *request, const char *filename) {
 		return;
 	}
 
-	FIOBJ html = fiobj_mustache_build(template, fiobj_hash_new());
+	FIOBJ html = fiobj_mustache_build(template, data);
 	fiobj_mustache_free(template);
 
 	FIOBJ htmx = fiobj_hash_get(request->headers, fiobj_str_new("hx-request", 10));
@@ -87,24 +92,39 @@ void write_template(http_s *request, const char *filename) {
 }
 
 void home_handler(http_s *request) {
-	write_template(request, "templates/home.html");
+	write_template(request, "templates/home.html", fiobj_null());
 }
 
 void key_form_handler(http_s *request) {
-	write_template(request, "templates/encrypt.html");
+	write_template(request, "templates/publickey.html", fiobj_null());
 }
 
 void key_handler(http_s *request) {
-	if (!http_parse_body(request)) {
-		puts("Error parsing body");
-		http_send_error(request, HTTP_INTERNAL_SERVER_ERROR);
-		return;
-	};
+	http_parse_body(request);
 
-	FIOBJ p = fiobj_hash_get(request->params, fiobj_str_new("p", 1));
-	FIOBJ q = fiobj_hash_get(request->params, fiobj_str_new("q", 1));
-	FIOBJ e = fiobj_hash_get(request->params, fiobj_str_new("e", 1));
+	mpz_t p;
+	mpz_init(p);
+	get_mpz_from_form(request->params, "p", &p);
 
-	fio_str_info_s data = fiobj_obj2cstr(p);
-	printf("%s\n", data.data);
+	mpz_t q;
+	mpz_init(q);
+	get_mpz_from_form(request->params, "q", &q);
+
+	mpz_t e;
+	mpz_init(e);
+	get_mpz_from_form(request->params, "e", &e);
+
+	PublicKey chave;
+	generate_public_key(p, q, e, &chave);
+
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+
+	char PATH_[4098];
+	sprintf(PATH_, "%s/texts/public_key.txt", cwd);
+
+	FIOBJ data = fiobj_hash_new();
+	fiobj_hash_set(data, fiobj_str_new("path", 4), fiobj_str_new(PATH_, strlen(PATH_)));
+	write_template(request, "templates/publickey_submission.html", data);
+	fiobj_free(data);
 }

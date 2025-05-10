@@ -116,9 +116,16 @@ input[type="submit"] {
 	transition: all 0.3s ease-in-out;
 	color: rgba(255, 255, 255, 0.6);
 	width: 16rem;
-	margin-top: 1rem;
 }
 
 input[type="submit"]:hover {
 	background-color: oklch(27.8% 0.033 256.848);
+}
+
+.message {
+	margin-top: 1rem;
+
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.6);
+	font-weight: 400;
 }

@@ -40,13 +40,13 @@ int generate_public_key(const mpz_t p, const mpz_t q, const mpz_t e, PublicKey *
     mpz_init(chave->e);
     mpz_set(chave->e, e);
 
-    if (!save_public_key(chave, "chave_publica.txt")) {
+    if (!save_public_key(chave, "./texts/public_key.txt")) {
         mpz_clears(phi, temp, NULL);
         return RSA_FAILED_TO_SAVE_PUBLIC_KEY;
     }
 
     mpz_clears(phi, temp, NULL);
-    return OK;
+    return RSA_OK;
 }
 
 int encrypt_message(const char *mensagem, const PublicKey *chave, const char *file_name) {
