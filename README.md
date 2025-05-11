@@ -10,7 +10,8 @@ Grupo:
 
 ## Rodando a Aplicação
 
-Certifique-se que o build system `meson` e a biblioteca `gmp` estejam instalados no seu sistema.
+Certifique-se que os build systems `meson`, `cmake` e a biblioteca `gmp` estejam instalados no seu sistema.
+
 Em seguida:
 
 ```bash
