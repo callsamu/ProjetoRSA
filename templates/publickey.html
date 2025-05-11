@@ -3,13 +3,19 @@
 
 	<form hx-post="/publickey" hx-target="this" hx-swap="outerHTML">
 		<label for="p">Um Primo P:</label>
-		<input type="text" name="p" placeholder="720703">
+		<input type="text" value="{{ p }}" name="p" placeholder="720703">
+		{{#p_error}}
+			<span class="error">{{ p_error }}</span>
+		{{/p_error}}
 
 		<label for="q">Um Primo Q:</label>
-		<input type="text" name="q" placeholder="225373">
+		<input type="text" value="{{ q }}" name="q" placeholder="225373">
+		{{#q_error}}
+			<span class="error">{{ q_error }}</span>
+		{{/q_error}}
 
 		<label for="e">Um número e relativamente primo a (p-1)*(q-1): </label>
-		<input type="text" name="e" placeholder="225373">
+		<input type="text" value="{{ e }}" name="e" placeholder="225373">
 
 
 		<input type="submit" value="Gerar"/>

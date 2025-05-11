@@ -1,11 +1,13 @@
 #include "handlers.h"
 #include "fiobj_hash.h"
+#include "fiobj_json.h"
 #include "fiobj_str.h"
 #include "mustache_parser.h"
 #include "fiobject.h"
 #include "http.h"
 #include <gmp.h>
 
+#include "subprojects/facil.io-0.7.6/lib/facil/http/http.h"
 #include "utils.h"
 #include "rsa.h"
 
@@ -99,20 +101,82 @@ void key_form_handler(http_s *request) {
 	write_template(request, "templates/publickey.html", fiobj_null());
 }
 
+#define VALIDATION_ERROR(bag, err, msg) \
+	fiobj_hash_set( \
+		bag, \
+		fiobj_str_new(err, strlen(err)), \
+		fiobj_str_new(msg, strlen(msg)) \
+	)
+
 void key_handler(http_s *request) {
 	http_parse_body(request);
 
+	int err;
+	int has_validation_error = 0;
+	FIOBJ validations_errors = request->params;
+
 	mpz_t p;
 	mpz_init(p);
-	get_mpz_from_form(request->params, "p", &p);
+	err = get_mpz_from_form(request->params, "p", &p);
+
+	char *p_error = NULL;
+	if (err == NOT_FOUND_IN_FORM) {
+		p_error = "p é um valor obrigatório";
+	} else if (err == INVALID_NUMBER) {
+		p_error = "p inválido";
+	} else if (!is_prime(p)) {
+		p_error = "p não é primo";
+	}
+
+	if (p_error) {
+		has_validation_error = 1;
+		VALIDATION_ERROR(validations_errors, "p_error", p_error);
+	}
 
 	mpz_t q;
 	mpz_init(q);
-	get_mpz_from_form(request->params, "q", &q);
+	err = get_mpz_from_form(request->params, "q", &q);
+
+	char *q_error = NULL;
+	if (err == NOT_FOUND_IN_FORM) {
+		q_error = "q é um valor obrigatório";
+	} else if (err == INVALID_NUMBER) {
+		q_error = "q inválido";
+	} else if (!is_prime(p)) {
+		q_error = "q não é primo";
+	}
+
+	if (q_error) {
+		has_validation_error = 1;
+		VALIDATION_ERROR(validations_errors, "q_error", q_error);
+	}
 
 	mpz_t e;
 	mpz_init(e);
-	get_mpz_from_form(request->params, "e", &e);
+	err = get_mpz_from_form(request->params, "e", &e);
+
+	char *e_error = NULL;
+	if (err == NOT_FOUND_IN_FORM) {
+		e_error = "'e' é um valor obrigatório";
+	} else if (err == INVALID_NUMBER) {
+		e_error = "'e' é inválido";
+	}
+
+	if (e_error) {
+		has_validation_error = 1;
+		VALIDATION_ERROR(validations_errors, "e_error", e_error);
+	}
+
+	if (has_validation_error) {
+		http_set_header(
+			request, 
+			fiobj_str_new("HX-Retarget", 11), 
+			fiobj_str_new(".content", 8)
+		);
+		write_template(request, "templates/publickey.html", validations_errors);
+		fiobj_free(validations_errors);
+		return;
+	}
 
 	PublicKey chave;
 	generate_public_key(p, q, e, &chave);
