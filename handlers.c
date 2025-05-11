@@ -199,6 +199,8 @@ void encrypt_form_handler(http_s *request) {
 	write_template(request, "templates/encrypt-form.html", fiobj_null());
 }
 
+#define IS_BLANK(s) (s == '\n' || s == ' ')
+
 void parse_key(FIOBJ str, PublicKey *key){
 	fio_str_info_s s = fiobj_obj2cstr(str);
 
@@ -206,7 +208,7 @@ void parse_key(FIOBJ str, PublicKey *key){
 
 	int i = 0;
 
-	for (; s.data[i] != '\n' && s.data[i] != '\0';  i++) {
+	for (; !IS_BLANK(s.data[i]) && s.data[i] != '\0';  i++) {
 		buffer[i] = s.data[i];
 	}
 
