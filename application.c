@@ -34,8 +34,7 @@ static void add_route(
 	);
 }
 
-Application *init_app() {
-	Application *app = malloc(sizeof(Application));
+void init_app(Application *app) {
 	FIOBJ table = fiobj_hash_new();
 
 	HTTP_GET = fiobj_str_new("GET", 3);
@@ -56,7 +55,6 @@ Application *init_app() {
 	add_route(table, HTTP_POST, "/decrypt", decrypt_handler);
 
 	app->routing_table = table;
-	return app;
 }
 
 void free_app(Application *app) {

@@ -8,7 +8,7 @@ typedef void HTTP_Handler(http_s *);
 
 #define GET_APPLICATION(req) (Application *) req->udata
 
-Application *init_app();
+void init_app(Application *app);
 void free_app(Application *app);
 
 void route_request(Application *app, http_s *request);

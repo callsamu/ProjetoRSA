@@ -15,19 +15,22 @@ void on_request(http_s *request) {
 }
 
 int main(int argc, char const **argv) {
+	Application app;
+
+	init_app(&app);
 	printf("Starting facil.io server...\n");
 
-	Application *app = init_app();
+
 
 	http_listen(
 		"3000", 
 		"localhost", 
 		.on_request = on_request, 
-		.udata = (void *) app,
+		.udata = (void *) &app,
 		.log = 1
 	);
 
 	fio_start(.threads = 1);
 
-	free_app(app);
+	free_app(&app);
 }
