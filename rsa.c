@@ -1,8 +1,12 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <gmp.h>
 #include <string.h>
 
 #include "rsa.h"
+
+#define IS_CHAR_ALLOWED(n) \
+	!isalnum(ascii) && !isblank(ascii) && ascii != '\n'
 
 int is_prime(const mpz_t number) {
     return mpz_probab_prime_p(number, 100);
@@ -58,9 +62,14 @@ int encrypt_message(const char *mensagem, const PublicKey *chave, const char *fi
     mpz_t m, c;
     mpz_inits(m, c, NULL);
 
+	putchar('\n');
+
     for (size_t i = 0; i < strlen(mensagem); ++i) {
         int ascii = (int)mensagem[i];
-        if (ascii < 32 || ascii > 126) {
+		putchar(ascii);
+
+        if (IS_CHAR_ALLOWED(ascii)) {
+			printf("Apenas letras e números são permitidos\n");
             fclose(arquivo);
             mpz_clears(m, c, NULL);
             return 0;
@@ -117,7 +126,7 @@ int decrypt_message(const char *mensagem_encriptada, const mpz_t p, const mpz_t 
         mpz_powm(m, c, d, n);
 
         unsigned long ascii = mpz_get_ui(m);
-        if (ascii < 32 || ascii > 126) {
+        if (IS_CHAR_ALLOWED(ascii)) {
             fclose(output);
 			fclose(stream);
             mpz_clears(phi, d, n, c, m, NULL);
